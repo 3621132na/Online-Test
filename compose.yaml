@@ -1,0 +1,31 @@
+﻿version: '3.8'
+services:
+  backend:
+    build: ./TaskManagementBackend
+    ports:
+      - "5170:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Database=TaskManagementDb;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+    depends_on:
+      - db
+  frontend:
+    build: ./TaskManagementFrontend
+    ports:
+      - "5173:3000"
+    depends_on:
+      - backend
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+volumes:
+  pgdata:

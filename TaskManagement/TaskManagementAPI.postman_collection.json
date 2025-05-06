@@ -1,0 +1,285 @@
+﻿{
+  "info": {
+    "name": "Task Management API",
+    "description": "API collection for Task Management application, including authentication and task management endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"Admin\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5170/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5170",
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user. Role can be 'Admin' or 'Regular' (default to 'Regular' if not specified)."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "\"User registered successfully.\""
+            },
+            {
+              "name": "Bad Request - Username or Email Exists",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "\"Username or email already exists.\""
+            }
+          ]
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5170/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5170",
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login to get a JWT token."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"Token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+            },
+            {
+              "name": "Unauthorized - Invalid Credentials",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "\"Invalid credentials.\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "Replace {{token}} with the JWT token obtained from login."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Finish project\",\n  \"description\": \"Complete the project documentation\",\n  \"status\": \"ToDo\",\n  \"dueDate\": \"2025-05-15\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5170/api/tasks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5170",
+              "path": ["api", "tasks"]
+            },
+            "description": "Create a new task. Requires authentication."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"userid\": 1,\n  \"title\": \"Finish project\",\n  \"description\": \"Complete the project documentation\",\n  \"status\": \"ToDo\",\n  \"duedate\": \"2025-05-15T00:00:00\",\n  \"createdat\": \"2025-05-07T00:00:00\",\n  \"updatedat\": \"2025-05-07T00:00:00\"\n}"
+            },
+            {
+              "name": "Unauthorized - No Token",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"message\": \"Authorization has been denied for this request.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "Replace {{token}} with the JWT token obtained from login."
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5170/api/tasks?status=ToDo&keyword=project&sortBy=DueDate&sortOrder=asc",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5170",
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ToDo",
+                  "description": "Filter by status (ToDo, InProgress, Completed)"
+                },
+                {
+                  "key": "keyword",
+                  "value": "project",
+                  "description": "Search keyword in title or description"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "DueDate",
+                  "description": "Sort by field (DueDate)"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Sort order (asc or desc)"
+                }
+              ]
+            },
+            "description": "Get list of tasks. Admins see all tasks; regular users see only their own tasks."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"userid\": 1,\n    \"title\": \"Finish project\",\n    \"description\": \"Complete the project documentation\",\n    \"status\": \"ToDo\",\n    \"duedate\": \"2025-05-15T00:00:00\",\n    \"createdat\": \"2025-05-07T00:00:00\",\n    \"updatedat\": \"2025-05-07T00:00:00\"\n  }\n]"
+            },
+            {
+              "name": "Unauthorized - No Token",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"message\": \"Authorization has been denied for this request.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "Replace {{token}} with the JWT token obtained from login."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Finish project - Updated\",\n  \"description\": \"Updated description\",\n  \"status\": \"InProgress\",\n  \"dueDate\": \"2025-05-20\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5170/api/tasks/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5170",
+              "path": ["api", "tasks", "1"]
+            },
+            "description": "Update a task by ID. Admins can update any task; regular users can only update their own tasks."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"userid\": 1,\n  \"title\": \"Finish project - Updated\",\n  \"description\": \"Updated description\",\n  \"status\": \"InProgress\",\n  \"duedate\": \"2025-05-20T00:00:00\",\n  \"createdat\": \"2025-05-07T00:00:00\",\n  \"updatedat\": \"2025-05-07T12:00:00\"\n}"
+            },
+            {
+              "name": "Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "null"
+            },
+            {
+              "name": "Unauthorized - Not Owner",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "\"You can only edit your own tasks.\""
+            }
+          ]
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "Replace {{token}} with the JWT token obtained from login."
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5170/api/tasks/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5170",
+              "path": ["api", "tasks", "1"]
+            },
+            "description": "Delete a task by ID. Admins can delete any task; regular users can only delete their own tasks."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "\"Task deleted.\""
+            },
+            {
+              "name": "Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "null"
+            },
+            {
+              "name": "Unauthorized - Not Owner",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "\"You can only delete your own tasks.\""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
